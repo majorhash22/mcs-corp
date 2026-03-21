@@ -788,12 +788,15 @@ section {
 /* ================================================ */
 /* OUR WORKS                                        */
 /* ================================================ */
-.works-section {}
+.works-section {
+  overflow: hidden;
+}
 
 .works-carousel {
   max-width: 1000px;
   margin: 0 auto;
   position: relative;
+  width: 100%;
 }
 
 .works-wrapper {
@@ -801,6 +804,7 @@ section {
   gap: 40px;
   justify-content: center;
   align-items: flex-start;
+  width: 100%;
 }
 
 .works-column {
@@ -821,16 +825,18 @@ section {
 }
 
 .works-track {
-  height: 480px;
+  aspect-ratio: 4 / 3;
+  height: auto;
   overflow: hidden;
   position: relative;
   border-radius: 22px;
   box-shadow: 0 25px 70px rgba(0,0,0,0.25);
+  width: 100%;
 }
 
 .works-track img {
   width: 100%;
-  height: 480px;
+  height: 100%;
   object-fit: cover;
   position: absolute;
   top: 0; left: 0;
@@ -1562,45 +1568,45 @@ section {
 .bubble {
   position: absolute;
   border-radius: 50%;
-  border: 2px solid rgba(0,240,255,0.55);
+  border: 1.5px solid rgba(0,240,255,0.35);
   background: radial-gradient(
     circle at 32% 30%,
-    rgba(255,255,255,0.45) 0%,
-    rgba(0,200,255,0.12) 45%,
-    rgba(0,124,240,0.08) 100%
+    rgba(0,240,255,0.12) 0%,
+    rgba(0,200,255,0.07) 50%,
+    rgba(0,124,240,0.04) 100%
   );
   box-shadow:
-    inset -2px -2px 4px rgba(0,240,255,0.2),
-    inset 2px 2px 6px rgba(255,255,255,0.3);
+    inset -2px -2px 4px rgba(0,240,255,0.1),
+    inset 2px 2px 5px rgba(255,255,255,0.08);
   opacity: 0;
+  will-change: transform, opacity;
   animation: bubbleRise var(--dur) ease-in var(--del) forwards;
 }
 
 .bubble::before {
   content: '';
   position: absolute;
-  top: 18%; left: 22%;
-  width: 28%; height: 20%;
-  background: rgba(255,255,255,0.7);
+  top: 20%; left: 24%;
+  width: 24%; height: 16%;
+  background: rgba(255,255,255,0.22);
   border-radius: 50%;
-  filter: blur(1px);
+  filter: blur(1.5px);
 }
 
 .bubble::after {
   content: '';
   position: absolute;
-  top: 55%; left: 60%;
-  width: 12%; height: 10%;
-  background: rgba(255,255,255,0.4);
+  top: 58%; left: 62%;
+  width: 10%; height: 8%;
+  background: rgba(255,255,255,0.14);
   border-radius: 50%;
 }
 
 @keyframes bubbleRise {
-  0%   { opacity: 0;   transform: translate(var(--x), 0px)       scale(0.3); }
-  12%  { opacity: 0.9; transform: translate(var(--x), -10px)     scale(1.05); }
-  85%  { opacity: 0.7; transform: translate(var(--x2), var(--y)) scale(1); }
-  95%  { opacity: 0.4; transform: translate(var(--x2), var(--y)) scale(1.15); }
-  100% { opacity: 0;   transform: translate(var(--x2), var(--y)) scale(1.3); }
+  0%   { opacity: 0;   transform: translate(var(--x), 0px)       scale(0.5); }
+  20%  { opacity: 0.6; transform: translate(var(--x), -8px)      scale(1); }
+  80%  { opacity: 0.5; transform: translate(var(--x2), var(--y)) scale(1); }
+  100% { opacity: 0;   transform: translate(var(--x2), var(--y)) scale(1.1); }
 }
 
 .blob-wrap {
@@ -1630,10 +1636,10 @@ section {
 }
 
 @keyframes blobSlide {
-  0%   { opacity: 0;   transform: translateY(calc(-50% + var(--vy,0px))) translateX(-110%); }
-  8%   { opacity: 1; }
-  88%  { opacity: 0.9; }
-  100% { opacity: 0;   transform: translateY(calc(-50% + var(--vy,0px))) translateX(110vw); }
+  0%   { opacity: 0;    transform: translateY(calc(-50% + var(--vy,0px))) translateX(-110%); }
+  15%  { opacity: 0.18; }
+  85%  { opacity: 0.14; }
+  100% { opacity: 0;    transform: translateY(calc(-50% + var(--vy,0px))) translateX(110vw); }
 }
 
 /* ================================================ */
@@ -1680,8 +1686,6 @@ section {
   }
 
   .works-wrapper { gap: 24px; }
-  .works-track { height: 380px; }
-  .works-track img { height: 380px; }
 
   .services-container { grid-template-columns: 1fr 1fr; }
   .service-detail-card:nth-child(3) { grid-column: span 2; }
@@ -1782,10 +1786,10 @@ section {
 
   /* Works */
   .works-wrapper { flex-direction: column; gap: 20px; }
-  .works-column { width: 100%; }
-  .works-track { height: 260px; }
-  .works-track img { height: 260px; }
+  .works-column { width: 100%; flex: none; }
+  .works-track { aspect-ratio: 16 / 10; border-radius: 16px; }
   .works-label { font-size: 1.4rem; }
+  .works-carousel { padding: 0; }
 
   /* Testimonials */
   .testimonials-track { gap: 16px; }
@@ -1866,8 +1870,7 @@ section {
   .overlay h2 { font-size: 1.1rem; }
 
   /* Works */
-  .works-track { height: 220px; }
-  .works-track img { height: 220px; }
+  .works-track { border-radius: 12px; }
 
   /* Testimonials */
   .testimonial-card { padding: 24px 16px 20px; gap: 10px; }

@@ -126,6 +126,19 @@ if (track) {
     updateCarousel();
   }, 5000);
 
+  // Touch / swipe support
+  let svcTouchStartX = 0;
+  track.addEventListener('touchstart', e => { svcTouchStartX = e.changedTouches[0].clientX; }, { passive: true });
+  track.addEventListener('touchend', e => {
+    const diff = svcTouchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) {
+      index = diff > 0
+        ? (index + 1) % items.length
+        : (index - 1 + items.length) % items.length;
+      updateCarousel();
+    }
+  }, { passive: true });
+
   updateCarousel();
 }
 

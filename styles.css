@@ -181,93 +181,96 @@ section {
   position: relative;
   overflow: hidden;
   width: 100%;
-  border-radius: 0;
   z-index: 1;
 }
 
 .carousel {
   position: relative;
   max-width: 1200px;
-  margin: auto;
-  overflow: hidden; /* was: visible — this was letting cards spill out */
+  margin: 0 auto;
   padding: 0 16px;
   box-sizing: border-box;
 }
 
-/* Track */
+/* Scroll-snap track */
 .carousel-track {
   display: flex;
   gap: 24px;
-  transition: transform .8s cubic-bezier(.77,0,.18,1);
-  padding: 40px 20px;
-  will-change: transform;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  padding: 20px 4px 28px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+.carousel-track::-webkit-scrollbar { display: none; }
 
-/* Cards — 3 visible on desktop */
+/* Each card snaps into place */
 .carousel-item {
-  min-width: calc(33.333% - 16px);
+  scroll-snap-align: start;
+  flex: 0 0 calc(33.333% - 16px);
+  min-width: 280px;
   height: 480px;
   border-radius: 20px;
   overflow: hidden;
   position: relative;
   flex-shrink: 0;
-  opacity: .75;
-  transition: all .7s ease;
-  transform: scale(0.97);
   box-shadow: 0 30px 80px rgba(0,0,0,0.25);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.carousel-item.active {
-  opacity: 1;
-  z-index: 2;
-  transform: scale(1);
+.carousel-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 36px 90px rgba(0,0,0,0.3);
 }
 
-/* Image fills card */
 .carousel-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 6s ease;
+  display: block;
 }
 
-.carousel-item.active img {
-  transform: scale(1.1);
-}
-
-/* Overlay — fluid, no fixed left/bottom px */
+/* Overlay */
 .overlay {
   position: absolute;
-  bottom: 20px;
+  bottom: 16px;
   left: 16px;
   right: 16px;
-  max-width: 100%;
   backdrop-filter: blur(10px);
-  background: rgba(0,0,0,0.45);
+  background: rgba(0,0,0,0.5);
   padding: 20px;
-  border-radius: 16px;
+  border-radius: 14px;
   color: white;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
   box-sizing: border-box;
 }
 
 .overlay h2 {
   color: #00f0ff;
-  margin-bottom: 8px;
-  font-size: 1.4rem;
+  margin-bottom: 6px;
+  font-size: 1.3rem;
   line-height: 1.2;
 }
 
-/* Buttons */
-.carousel-buttons {
+.overlay p {
+  font-size: 0.88rem;
+  margin-bottom: 10px;
+  opacity: 0.9;
+  line-height: 1.5;
+}
+
+/* Controls */
+.carousel-controls {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 16px;
-  margin-top: 28px;
+  margin-top: 8px;
 }
 
-.carousel-buttons button {
+.carousel-controls button {
   background: #073E3E;
   color: #fff;
   border: none;
@@ -283,12 +286,11 @@ section {
   flex-shrink: 0;
 }
 
-.carousel-buttons button:hover {
+.carousel-controls button:hover {
   background: #0a5555;
   transform: scale(1.1);
 }
 
-/* Dots */
 .carousel-dots {
   display: flex;
   gap: 8px;
@@ -312,24 +314,23 @@ section {
   transform: scale(1.3);
 }
 
-/* ---- Tablet (769px – 1024px): 2 cards ---- */
+/* ---- Tablet: 2 cards ---- */
 @media (min-width: 769px) and (max-width: 1024px) {
-  .carousel-item { min-width: calc(50% - 12px); height: 420px; }
-  .overlay h2 { font-size: 1.2rem; }
+  .carousel-item { flex: 0 0 calc(50% - 12px); height: 420px; }
 }
 
-/* ---- Mobile (≤ 768px): 1 card ---- */
+/* ---- Mobile: 1 card ---- */
 @media (max-width: 768px) {
   .carousel { padding: 0 12px; }
-  .carousel-track { gap: 16px; padding: 24px 12px; }
-  .carousel-item { min-width: calc(100% - 0px); height: 380px; }
-  .overlay { bottom: 14px; left: 12px; right: 12px; padding: 16px; border-radius: 12px; }
+  .carousel-track { gap: 16px; padding: 16px 4px 24px; }
+  .carousel-item { flex: 0 0 100%; min-width: 0; height: 380px; border-radius: 16px; }
+  .overlay { bottom: 12px; left: 12px; right: 12px; padding: 16px; border-radius: 12px; }
   .overlay h2 { font-size: 1.1rem; }
   .service-sublist { font-size: 0.82rem; }
   .service-btn { font-size: 0.82rem; padding: 10px 18px; }
 }
 
-/* ---- Small mobile (≤ 480px) ---- */
+/* ---- Small mobile ---- */
 @media (max-width: 480px) {
   .carousel-item { height: 320px; }
   .overlay { padding: 12px; }
@@ -1668,18 +1669,27 @@ color:#111;
 .testimonials-carousel {
   max-width: 1100px;
   margin: 0 auto;
-  overflow: hidden;
   position: relative;
 }
 
+/* Scroll-snap track */
 .testimonials-track {
   display: flex;
-  gap: 30px;
-  transition: transform 0.5s ease;
+  gap: 24px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  padding: 16px 4px 24px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+.testimonials-track::-webkit-scrollbar { display: none; }
 
 .testimonial-card {
-  flex: 0 0 calc(33.333% - 20px);
+  scroll-snap-align: start;
+  flex: 0 0 calc(33.333% - 16px);
+  min-width: 260px;
   background: #fff;
   border: 2px solid #073E3E;
   border-radius: 16px;
@@ -1730,7 +1740,6 @@ color:#111;
   gap: 14px;
   margin-top: 8px;
   padding-top: 16px;
-  border-top: none;
 }
 
 .testimonial-avatar {
@@ -1767,7 +1776,7 @@ color:#111;
   align-items: center;
   justify-content: center;
   gap: 16px;
-  margin-top: 36px;
+  margin-top: 20px;
 }
 
 .testimonials-controls button {
@@ -1783,6 +1792,7 @@ color:#111;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .testimonials-controls button:hover {
@@ -1793,6 +1803,8 @@ color:#111;
 .testimonials-dots {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .testimonials-dots span {
@@ -1803,6 +1815,7 @@ color:#111;
   cursor: pointer;
   transition: background 0.3s ease, transform 0.2s ease;
   display: inline-block;
+  flex-shrink: 0;
 }
 
 .testimonials-dots span.active {
@@ -1810,26 +1823,16 @@ color:#111;
   transform: scale(1.3);
 }
 
-@media (max-width: 768px) {
-  .testimonial-card {
-    flex: 0 0 100%;
-  }
-  .testimonials-section {
-    padding: 120px 20px;
-  }
-}
-
+/* ---- Tablet: 2 cards ---- */
 @media (min-width: 769px) and (max-width: 1024px) {
-  .testimonial-card {
-    flex: 0 0 calc(50% - 15px);
-  }
+  .testimonial-card { flex: 0 0 calc(50% - 12px); }
 }
 
-
-
-
-
-
+/* ---- Mobile: 1 card ---- */
+@media (max-width: 768px) {
+  .testimonials-section { padding: 80px 16px; }
+  .testimonial-card { flex: 0 0 100%; min-width: 0; }
+}
 /* ================================================ */
 /* SECTION BANNER HEADERS                           */
 /* ================================================ */

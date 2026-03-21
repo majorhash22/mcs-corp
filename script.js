@@ -12,6 +12,7 @@ if (beforeImages.length && afterImages.length) {
   const worksDotsContainer = document.getElementById('worksDots');
   let worksIndex = 0;
 
+  // Build dots
   beforeImages.forEach((_, i) => {
     const dot = document.createElement('span');
     if (i === 0) dot.classList.add('active');
@@ -40,20 +41,19 @@ if (beforeImages.length && afterImages.length) {
     updateWorks();
   });
 
-  // Touch/swipe support for works
-  let wTouchStartX = 0;
-  const worksWrapper = document.querySelector('.works-wrapper');
-  if (worksWrapper) {
-    worksWrapper.addEventListener('touchstart', e => { wTouchStartX = e.touches[0].clientX; }, { passive: true });
-    worksWrapper.addEventListener('touchend', e => {
-      const diff = wTouchStartX - e.changedTouches[0].clientX;
-      if (Math.abs(diff) > 40) {
-        if (diff > 0) { worksIndex = (worksIndex + 1) % beforeImages.length; }
-        else          { worksIndex = (worksIndex - 1 + beforeImages.length) % beforeImages.length; }
-        updateWorks();
-      }
-    }, { passive: true });
-  }
+  // Touch / swipe support
+  let touchStartX = 0;
+  const worksCarousel = document.querySelector('.works-carousel');
+  worksCarousel.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; }, { passive: true });
+  worksCarousel.addEventListener('touchend', e => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) {
+      worksIndex = diff > 0
+        ? (worksIndex + 1) % beforeImages.length
+        : (worksIndex - 1 + beforeImages.length) % beforeImages.length;
+      updateWorks();
+    }
+  }, { passive: true });
 
   updateWorks();
 }
@@ -69,7 +69,7 @@ if (faders.length) {
         observer.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
 
   faders.forEach(fader => appearOnScroll.observe(fader));
 }
@@ -99,13 +99,13 @@ if (track) {
     items[index].classList.add('active');
     dots[index].classList.add('active');
 
-    const carouselEl  = track.parentElement;
-    const carouselWidth = carouselEl.offsetWidth;
-    const itemWidth   = items[index].offsetWidth;
+    const carouselWidth = track.parentElement.offsetWidth;
+    const trackWidth    = track.scrollWidth;
+    const itemWidth     = items[index].offsetWidth;
 
     let offset = items[index].offsetLeft - (carouselWidth - itemWidth) / 2;
     if (offset < 0) offset = 0;
-    const maxOffset = track.scrollWidth - carouselWidth;
+    const maxOffset = trackWidth - carouselWidth;
     if (offset > maxOffset) offset = maxOffset;
 
     track.style.transform = `translateX(-${offset}px)`;
@@ -121,36 +121,10 @@ if (track) {
     updateCarousel();
   });
 
-  // Touch/swipe support
-  let touchStartX = 0;
-  track.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
-  track.addEventListener('touchend', e => {
-    const diff = touchStartX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 40) {
-      if (diff > 0) { index = (index + 1) % items.length; }
-      else          { index = (index - 1 + items.length) % items.length; }
-      updateCarousel();
-    }
-  }, { passive: true });
-
-  // Auto-advance
-  let autoTimer = setInterval(() => {
+  setInterval(() => {
     index = (index + 1) % items.length;
     updateCarousel();
   }, 5000);
-
-  // Pause on interaction
-  [nextButton, prevButton].forEach(btn => {
-    btn.addEventListener('click', () => {
-      clearInterval(autoTimer);
-      autoTimer = setInterval(() => {
-        index = (index + 1) % items.length;
-        updateCarousel();
-      }, 5000);
-    });
-  });
-
-  window.addEventListener('resize', updateCarousel);
 
   updateCarousel();
 }
@@ -189,9 +163,7 @@ if (tTrack) {
     if (tIndex > maxIndex) tIndex = maxIndex;
     if (tIndex < 0)        tIndex = 0;
 
-    // Calculate card width dynamically to handle resizing
-    const gap = window.innerWidth <= 768 ? 16 : 30;
-    const cardWidth = tCards[0].offsetWidth + gap;
+    const cardWidth = tCards[0].offsetWidth + 30;
     tTrack.style.transform = `translateX(-${tIndex * cardWidth}px)`;
 
     const dots = tDotsContainer.querySelectorAll('span');
@@ -210,27 +182,7 @@ if (tTrack) {
     updateTestimonials();
   });
 
-  // Touch/swipe
-  let tTouchStartX = 0;
-  tTrack.addEventListener('touchstart', e => { tTouchStartX = e.touches[0].clientX; }, { passive: true });
-  tTrack.addEventListener('touchend', e => {
-    const diff = tTouchStartX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 40) {
-      const maxIndex = Math.max(0, tCards.length - getVisibleCount());
-      if (diff > 0) { tIndex = tIndex >= maxIndex ? 0 : tIndex + 1; }
-      else          { tIndex = tIndex <= 0 ? maxIndex : tIndex - 1; }
-      updateTestimonials();
-    }
-  }, { passive: true });
-
-  let resizeTimer;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => {
-      buildDots();
-      updateTestimonials();
-    }, 100);
-  });
+  window.addEventListener('resize', () => { buildDots(); updateTestimonials(); });
 
   buildDots();
   updateTestimonials();
@@ -247,7 +199,7 @@ if (serviceCards.length) {
         cardObserver.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
   serviceCards.forEach(card => cardObserver.observe(card));
 }
@@ -255,6 +207,7 @@ if (serviceCards.length) {
 /* ---- Blob sweep + Bubble rise on section titles ---- */
 (function () {
 
+  // ── Shared SVG filter for organic blob edges ──
   (function injectFilter() {
     if (document.getElementById('blob-filter')) return;
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -274,6 +227,7 @@ if (serviceCards.length) {
     document.body.appendChild(svg);
   })();
 
+  // ── Blob definitions ──
   const BLOB_DEFS = [
     { wF: 2.8, hF: 0.90, vy:  0,  alpha: 0.20, del: '0.00s', dur: '1.6s' },
     { wF: 1.6, hF: 0.70, vy: -6,  alpha: 0.15, del: '0.18s', dur: '1.5s' },
@@ -282,6 +236,7 @@ if (serviceCards.length) {
     { wF: 2.6, hF: 0.95, vy:  2,  alpha: 0.12, del: '0.66s', dur: '1.65s'},
   ];
 
+  // ── Bubble definitions (fraction-based, same as before) ──
   const BUBBLE_DEFS = [
     { sz: 28, xF: 0.00, x2F: 0.02, yPx: -100, del: '0.00s', dur: '1.8s' },
     { sz: 16, xF: 0.06, x2F: 0.04, yPx: -120, del: '0.12s', dur: '1.5s' },
@@ -301,6 +256,7 @@ if (serviceCards.length) {
     const titleEl = banner.querySelector('.section-title') || banner;
     banner.style.position = 'relative';
 
+    // Two separate wraps — blobs on the title, bubbles below it
     const blobWrap   = document.createElement('div');
     blobWrap.className = 'blob-wrap';
     banner.appendChild(blobWrap);
@@ -319,6 +275,7 @@ if (serviceCards.length) {
       const offsetX = tRect.left - bRect.left;
       const offsetY = tRect.top  - bRect.top;
 
+      // ── Blob wrap covers the title row ──
       blobWrap.style.cssText = `
         position:absolute;
         left:${offsetX}px;
@@ -345,6 +302,7 @@ if (serviceCards.length) {
         blobWrap.appendChild(blob);
       });
 
+      // ── Bubble wrap anchored at bottom-left of title ──
       const anchorX = offsetX;
       const anchorY = offsetY + H;
 
@@ -382,7 +340,7 @@ if (serviceCards.length) {
         bubbleWrap.appendChild(b);
       });
 
-      setTimeout(() => { blobWrap.innerHTML = '';   }, 2500);
+      setTimeout(() => { blobWrap.innerHTML = ''; },   2500);
       setTimeout(() => { bubbleWrap.innerHTML = ''; }, 2200);
     }
 

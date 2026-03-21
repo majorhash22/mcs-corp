@@ -81,65 +81,73 @@ if (track) {
   const items         = Array.from(track.children);
   const nextButton    = document.getElementById('next');
   const prevButton    = document.getElementById('prev');
-  const dotsContainer = document.querySelector('.carousel-dots');
+  const dotsContainer = document.getElementById('carouselDots');
   let index = 0;
+  let autoTimer;
 
+  // Build one dot per card
   items.forEach((_, i) => {
     const dot = document.createElement('span');
     if (i === 0) dot.classList.add('active');
     dotsContainer.appendChild(dot);
-    dot.addEventListener('click', () => { index = i; updateCarousel(); });
+    dot.addEventListener('click', () => { index = i; scrollToCard(); });
   });
 
   const dots = Array.from(dotsContainer.children);
 
-  function updateCarousel() {
-    items.forEach(item => item.classList.remove('active'));
-    dots.forEach(dot  => dot.classList.remove('active'));
-    items[index].classList.add('active');
-    dots[index].classList.add('active');
+  function scrollToCard() {
+    // Clamp index
+    index = Math.max(0, Math.min(index, items.length - 1));
 
-    const carouselWidth = track.parentElement.offsetWidth;
-    const trackWidth    = track.scrollWidth;
-    const itemWidth     = items[index].offsetWidth;
+    // Scroll the track so the target card is at the left edge
+    const targetLeft = items[index].offsetLeft - track.offsetLeft;
+    track.scrollTo({ left: targetLeft, behavior: 'smooth' });
 
-    let offset = items[index].offsetLeft - (carouselWidth - itemWidth) / 2;
-    if (offset < 0) offset = 0;
-    const maxOffset = trackWidth - carouselWidth;
-    if (offset > maxOffset) offset = maxOffset;
-
-    track.style.transform = `translateX(-${offset}px)`;
+    // Update dots
+    dots.forEach((d, i) => d.classList.toggle('active', i === index));
   }
+
+  // Keep dots in sync when user swipes natively
+  track.addEventListener('scroll', () => {
+    const scrollLeft = track.scrollLeft;
+    let closest = 0;
+    let minDist = Infinity;
+    items.forEach((item, i) => {
+      const dist = Math.abs(item.offsetLeft - track.offsetLeft - scrollLeft);
+      if (dist < minDist) { minDist = dist; closest = i; }
+    });
+    if (closest !== index) {
+      index = closest;
+      dots.forEach((d, i) => d.classList.toggle('active', i === index));
+    }
+  }, { passive: true });
 
   nextButton.addEventListener('click', () => {
     index = (index + 1) % items.length;
-    updateCarousel();
+    scrollToCard();
+    resetAuto();
   });
 
   prevButton.addEventListener('click', () => {
     index = (index - 1 + items.length) % items.length;
-    updateCarousel();
+    scrollToCard();
+    resetAuto();
   });
 
-  setInterval(() => {
-    index = (index + 1) % items.length;
-    updateCarousel();
-  }, 5000);
+  function startAuto() {
+    autoTimer = setInterval(() => {
+      index = (index + 1) % items.length;
+      scrollToCard();
+    }, 5000);
+  }
 
-  // Touch / swipe support
-  let svcTouchStartX = 0;
-  track.addEventListener('touchstart', e => { svcTouchStartX = e.changedTouches[0].clientX; }, { passive: true });
-  track.addEventListener('touchend', e => {
-    const diff = svcTouchStartX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 40) {
-      index = diff > 0
-        ? (index + 1) % items.length
-        : (index - 1 + items.length) % items.length;
-      updateCarousel();
-    }
-  }, { passive: true });
+  function resetAuto() {
+    clearInterval(autoTimer);
+    startAuto();
+  }
 
-  updateCarousel();
+  startAuto();
+  scrollToCard();
 }
 
 /* ===== TESTIMONIALS CAROUSEL ===== */
@@ -152,53 +160,48 @@ if (tTrack) {
   const tNext          = document.getElementById('testimonialNext');
   let tIndex = 0;
 
-  function getVisibleCount() {
-    const w = window.innerWidth;
-    if (w <= 768)  return 1;
-    if (w <= 1024) return 2;
-    return 3;
+  // Build one dot per card
+  tCards.forEach((_, i) => {
+    const dot = document.createElement('span');
+    if (i === 0) dot.classList.add('active');
+    dot.addEventListener('click', () => { tIndex = i; scrollToTestimonial(); });
+    tDotsContainer.appendChild(dot);
+  });
+
+  const tDots = Array.from(tDotsContainer.children);
+
+  function scrollToTestimonial() {
+    tIndex = Math.max(0, Math.min(tIndex, tCards.length - 1));
+    const targetLeft = tCards[tIndex].offsetLeft - tTrack.offsetLeft;
+    tTrack.scrollTo({ left: targetLeft, behavior: 'smooth' });
+    tDots.forEach((d, i) => d.classList.toggle('active', i === tIndex));
   }
 
-  function buildDots() {
-    tDotsContainer.innerHTML = '';
-    const count = Math.max(1, tCards.length - getVisibleCount() + 1);
-    for (let i = 0; i < count; i++) {
-      const dot = document.createElement('span');
-      if (i === 0) dot.classList.add('active');
-      dot.addEventListener('click', () => { tIndex = i; updateTestimonials(); });
-      tDotsContainer.appendChild(dot);
+  // Keep dots in sync when user swipes natively
+  tTrack.addEventListener('scroll', () => {
+    let closest = 0;
+    let minDist = Infinity;
+    tCards.forEach((card, i) => {
+      const dist = Math.abs(card.offsetLeft - tTrack.offsetLeft - tTrack.scrollLeft);
+      if (dist < minDist) { minDist = dist; closest = i; }
+    });
+    if (closest !== tIndex) {
+      tIndex = closest;
+      tDots.forEach((d, i) => d.classList.toggle('active', i === tIndex));
     }
-  }
-
-  function updateTestimonials() {
-    const visibleCount = getVisibleCount();
-    const maxIndex     = Math.max(0, tCards.length - visibleCount);
-    if (tIndex > maxIndex) tIndex = maxIndex;
-    if (tIndex < 0)        tIndex = 0;
-
-    const cardWidth = tCards[0].offsetWidth + 30;
-    tTrack.style.transform = `translateX(-${tIndex * cardWidth}px)`;
-
-    const dots = tDotsContainer.querySelectorAll('span');
-    dots.forEach((d, i) => d.classList.toggle('active', i === tIndex));
-  }
+  }, { passive: true });
 
   tNext.addEventListener('click', () => {
-    const maxIndex = Math.max(0, tCards.length - getVisibleCount());
-    tIndex = tIndex >= maxIndex ? 0 : tIndex + 1;
-    updateTestimonials();
+    tIndex = (tIndex + 1) % tCards.length;
+    scrollToTestimonial();
   });
 
   tPrev.addEventListener('click', () => {
-    const maxIndex = Math.max(0, tCards.length - getVisibleCount());
-    tIndex = tIndex <= 0 ? maxIndex : tIndex - 1;
-    updateTestimonials();
+    tIndex = (tIndex - 1 + tCards.length) % tCards.length;
+    scrollToTestimonial();
   });
 
-  window.addEventListener('resize', () => { buildDots(); updateTestimonials(); });
-
-  buildDots();
-  updateTestimonials();
+  scrollToTestimonial();
 }
 
 /* ===== EXPLORE SERVICES — card fade-in ===== */
